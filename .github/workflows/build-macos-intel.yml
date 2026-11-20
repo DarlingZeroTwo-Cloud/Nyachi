@@ -41,12 +41,17 @@ jobs:
       - name: Build macOS app
         run: flutter build macos --release
 
-      - name: Verify binary architecture
+      - name: Verify binary architecture and min OS
         run: |
           APP="build/macos/Build/Products/Release/Nyachi.app"
           ls -la "build/macos/Build/Products/Release"
           lipo -info "$APP/Contents/MacOS/Nyachi"
-          lipo -info "$APP/Contents/Frameworks/FlutterMacOS.framework/FlutterMacOS" || true
+          echo '--- app LC_BUILD_VERSION ---'
+          otool -l "$APP/Contents/MacOS/Nyachi" | grep -A5 LC_BUILD_VERSION | head -30
+          echo '--- FlutterMacOS LC_BUILD_VERSION ---'
+          otool -l "$APP/Contents/Frameworks/FlutterMacOS.framework/FlutterMacOS" | grep -A5 LC_BUILD_VERSION | head -20
+          echo '--- Info.plist LSMinimumSystemVersion ---'
+          /usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$APP/Contents/Info.plist" || true
 
       - name: Package
         run: |
